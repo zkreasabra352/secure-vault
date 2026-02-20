@@ -400,12 +400,8 @@
         const db = getDatabase(app);
 
         const MASTER_PASSWORD = "zkreasabra";
-        let currentUserId = localStorage.getItem('userId') ? "user_" + localStorage.getItem('userId') : "user_default"; let allAccounts = {};
-
-        if (!localStorage.getItem('userId')) {
-            localStorage.setItem('userId', Math.random().toString(36).substr(2, 9));
-            currentUserId = "user_" + localStorage.getItem('userId');
-        }
+        // معرف ثابت لجميع الأجهزة لعرض البيانات المشتركة
+        let currentUserId = "shared_user";
 
         window.checkPassword = function () {
             const input = document.getElementById('password').value;
