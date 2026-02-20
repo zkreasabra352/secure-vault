@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حساباتي - Secure Vault</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        #login-screen {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            margin-top: 80px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        #login-screen h2 {
+            color: #1a1a2e;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        #login-screen input {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
+        }
+
+        #login-screen input:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+
+        #login-screen button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        #main-screen {
+            display: none;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            color: white;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .sync-status {
+            background: #2196F3;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+
+        .logout-btn {
+            background: #f44336;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        /* البحث */
+        .search-box {
+            background: white;
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 40px 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 15px;
+        }
+
+        .search-box input:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
+
+        .add-form {
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+        }
+
+        .add-form h3 {
+            color: #1a1a2e;
+            margin-bottom: 15px;
+        }
+
+        .add-form input {
+            width: 100%;
+            padding: 14px;
+            margin: 8px 0;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 15px;
+        }
+
+        .add-form input:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+
+        .add-form button {
+            width: 100%;
+            padding: 14px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .accounts-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .account-card {
+            background: white;
+            padding: 18px;
+            border-radius: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .account-info h3 {
+            color: #1a1a2e;
+            margin-bottom: 6px;
+            font-size: 17px;
+            font-weight: 600;
+        }
+
+        .account-info p {
+            color: #666;
+            font-size: 14px;
+            margin: 3px 0;
+        }
+
+        .account-actions {
+            display: flex;
+            gap: 8px;
+
+        }
+
+        .action-btn {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .copy-btn {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .edit-btn {
+            background: #FF9800;
+            color: white;
+        }
+
+        .delete-btn {
+            background: #f44336;
+            color: white;
+        }
+
+        /* نافذة التعديل */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .modal-content h3 {
+            color: #1a1a2e;
+            margin-bottom: 20px;
+        }
+
+        .modal-content input {
+            width: 100%;
+            padding: 14px;
+            margin: 10px 0;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 15px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .modal-buttons button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        .save-btn {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .cancel-btn {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 12px;
+            display: none;
+            z-index: 1000;
+        }
+
+        @media (max-width: 480px) {
+            .account-card {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .account-actions {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div id="login-screen">
+            <h2>🔐 مرحباً!</h2>
+            <p style="color: #666; margin-bottom: 25px;">أدخل كلمة المرور للدخول</p>
+            <input type="password" id="password" placeholder="كلمة المرور">
+            <button onclick="checkPassword()">دخول</button>
+            <p id="error-msg" style="color: #f44336; margin-top: 15px; display: none;">كلمة المرور خاطئة!</p>
+        </div>
+
+        <div id="main-screen">
+            <div class="header">
+                <div>
+                    <span class="sync-status" id="sync-status">🔄 جاري المزامنة...</span>
+                    <h1>🗝️ حساباتي</h1>
+                </div>
+                <button class="logout-btn" onclick="logout()">خروج</button>
+            </div>
+
+            <!-- البحث -->
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="🔍 ابحث في حساباتك..." oninput="searchAccounts()">
+                <i class="fas fa-search"></i>
+            </div>
+
+            <div class="add-form">
+                <h3>➕ إضافة حساب جديد</h3>
+                <input type="text" id="site-name" placeholder="اسم الموقع">
+                <input type="text" id="username" placeholder="اسم المستخدم">
+                <input type="email" id="email" placeholder="البريد الإلكتروني">
+                <input type="text" id="password-field" placeholder="كلمة المرور">
+                <textarea id="note" placeholder="ملاحظة (اختياري)"
+                    style="width:100%;padding:14px;margin:8px 0;border:2px solid #e0e0e0;border-radius:12px;font-size:15px;"></textarea>
+                <button onclick="addAccount()">💾 حفظ</button>
+            </div>
+
+            <div class="accounts-list" id="accounts-list"></div>
+        </div>
+    </div>
+
+    <!-- نافذة التعديل -->
+    <div class="modal" id="edit-modal">
+        <div class="modal-content">
+            <h3>✏️ تعديل الحساب</h3>
+            <input type="hidden" id="edit-key">
+            <input type="text" id="edit-site" placeholder="اسم الموقع">
+            <input type="text" id="edit-username" placeholder="اسم المستخدم">
+            <input type="email" id="edit-email" placeholder="البريد الإلكتروني">
+            <input type="text" id="edit-password" placeholder="كلمة المرور">
+            <textarea id="edit-note" placeholder="ملاحظة"
+                style="width:100%;padding:14px;margin:10px 0;border:2px solid #e0e0e0;border-radius:12px;font-size:15px;"></textarea>
+            <div class="modal-buttons">
+                <button class="cancel-btn" onclick="closeModal()">إلغاء</button>
+                <button class="save-btn" onclick="saveEdit()">حفظ</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, set, onValue, push, remove, update }
+            from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCnKUb63ZQVZv-xEV6EqyQcIGiShVhqyIE",
+            authDomain: "my-passwords-4f228.firebaseapp.com",
+            databaseURL: "https://my-passwords-4f228-default-rtdb.firebaseio.com",
+            projectId: "my-passwords-4f228",
+            storageBucket: "my-passwords-4f228.firebasestorage.app",
+            messagingSenderId: "552762838636",
+            appId: "1:552762838636:web:a33a5178267e1679a3d249"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        const MASTER_PASSWORD = "zkreasabra";
+        let currentUserId = localStorage.getItem('userId') ? "user_" + localStorage.getItem('userId') : "user_default"; let allAccounts = {};
+
+        if (!localStorage.getItem('userId')) {
+            localStorage.setItem('userId', Math.random().toString(36).substr(2, 9));
+            currentUserId = "user_" + localStorage.getItem('userId');
+        }
+
+        window.checkPassword = function () {
+            const input = document.getElementById('password').value;
+            if (input === MASTER_PASSWORD) {
+                localStorage.setItem('isLoggedIn', 'true');
+                showMainScreen();
+            } else {
+                document.getElementById('error-msg').style.display = 'block';
+            }
+        }
+
+        window.showMainScreen = function () {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('main-screen').style.display = 'block';
+            loadAccounts();
+        }
+
+        window.logout = function () {
+            localStorage.removeItem('isLoggedIn');
+            location.reload();
+        }
+
+        window.addAccount = function () {
+            const site = document.getElementById('site-name').value;
+            const user = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('password-field').value;
+            const note = document.getElementById('note').value;
+
+            if (!site || !user || !email || !pass) {
+                showToast("الرجاء ملء جميع الحقول!");
+                return;
+            }
+
+            const accountsRef = ref(db, 'accounts/' + currentUserId);
+            const newAccountRef = push(accountsRef);
+            set(newAccountRef, {
+                site: site,
+                user: user,
+                email: email,
+                pass: pass,
+                note: note,
+                createdAt: Date.now()
+            });
+
+            document.getElementById('site-name').value = '';
+            document.getElementById('username').value = '';
+            document.getElementById('password-field').value = '';
+            document.getElementById('email').value = '';
+            document.getElementById('note').value = '';
+
+            showToast("✅ تم الحفظ!");
+        }
+
+        function loadAccounts() {
+            const accountsRef = ref(db, 'accounts/' + currentUserId);
+            onValue(accountsRef, (snapshot) => {
+                allAccounts = snapshot.val() || {};
+                renderAccounts(allAccounts);
+                document.getElementById('sync-status').textContent = "✅ متزامن";
+                document.getElementById('sync-status').style.background = "#4CAF50";
+            });
+        }
+
+        window.renderAccounts = function (accounts) {
+            const list = document.getElementById('accounts-list');
+            list.innerHTML = '';
+
+            if (accounts) {
+                Object.keys(accounts).forEach(key => {
+                    const account = accounts[key];
+                    list.innerHTML += `
+                        <div class="account-card">
+                            <div class="account-info">
+                                <h3>${account.site}</h3>
+                                <p>👤 ${account.user}</p>
+                                <p>📧 ${account.email || ''}</p>
+                                <p>🔑 <span id="pass-${key}">••••••••</span></p>
+                                 ${account.note ? `<p>📝 ${account.note}</p>` : ''}
+                                <p style="font-size:12px;color:#888;">📅 ${account.createdAt ? new Date(account.createdAt).toLocaleString('ar-EG') : ''}</p>
+                            </div>
+                            <div class="account-actions">
+                                <button class="action-btn copy-btn" onclick="copyToClipboard('${account.pass}')">نسخ</button>
+                                <button class="action-btn edit-btn" onclick="openEditModal('${key}')">تعديل</button>
+                                <button class="action-btn delete-btn" onclick="deleteAccount('${key}')">حذف</button>
+                                 <button class="action-btn" style="background:#607D8B;color:white" onclick="togglePassword('${key}','${account.pass}')">👁</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+        }
+
+        window.searchAccounts = function () {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const filtered = {};
+
+            if (allAccounts) {
+                Object.keys(allAccounts).forEach(key => {
+                    const account = allAccounts[key];
+                    if (account.site.toLowerCase().includes(query) ||
+                        account.user.toLowerCase().includes(query)) {
+                        filtered[key] = account;
+                    }
+                });
+            }
+
+            renderAccounts(filtered);
+        }
+
+        window.openEditModal = function (key) {
+            const account = allAccounts[key];
+
+            document.getElementById('edit-key').value = key;
+            document.getElementById('edit-site').value = account.site;
+            document.getElementById('edit-username').value = account.user;
+            document.getElementById('edit-email').value = account.email || '';
+            document.getElementById('edit-password').value = account.pass;
+            document.getElementById('edit-note').value = account.note || '';
+
+            document.getElementById('edit-modal').style.display = 'flex';
+        }
+
+        window.closeModal = function () {
+            document.getElementById('edit-modal').style.display = 'none';
+        }
+
+        window.saveEdit = function () {
+            const key = document.getElementById('edit-key').value;
+            const site = document.getElementById('edit-site').value;
+            const user = document.getElementById('edit-username').value;
+            const pass = document.getElementById('edit-password').value;
+            const email = document.getElementById('edit-email').value;
+            const note = document.getElementById('edit-note').value;
+
+            if (!site || !user || !pass) {
+                showToast("الرجاء ملء جميع الحقول!");
+                return;
+            }
+
+            const accountRef = ref(db, 'accounts/' + currentUserId + '/' + key);
+            update(accountRef, {
+                site: site,
+                user: user,
+                email: email,
+                pass: pass,
+                note: note
+            });
+
+            closeModal();
+            showToast("✅ تم التعديل!");
+        }
+
+        window.copyToClipboard = function (text) {
+            navigator.clipboard.writeText(text);
+            showToast("✅ تم النسخ!");
+        }
+
+        window.deleteAccount = function (key) {
+            if (confirm("هل أنت متأكد من حذف هذا الحساب؟")) {
+                const accountRef = ref(db, 'accounts/' + currentUserId + '/' + key);
+                remove(accountRef);
+                showToast("✅ تم الحذف!");
+            }
+        }
+
+        window.showToast = function (message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.display = 'none', 2000);
+        }
+
+        if (localStorage.getItem('isLoggedIn') === 'true') {
+            showMainScreen();
+        }
+        window.togglePassword = function (key, realPass) {
+            const span = document.getElementById('pass-' + key);
+            if (span.textContent === '••••••••') {
+                span.textContent = realPass;
+            } else {
+                span.textContent = '••••••••';
+            }
+        }
+    </script>
+</body>
+
+</html>
