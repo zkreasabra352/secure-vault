@@ -400,9 +400,8 @@
         const db = getDatabase(app);
 
         const MASTER_PASSWORD = "zkreasabra";
-        // الكود الجديد (استخدم اسمك أو أي كلمة سرية هنا)
         const currentUserId = "my_private_vault_2024";
-        let allAccounts = {}; // هذا السطر هو الحل
+        let allAccounts = {}; // التعريف المفقود الذي سبب الخطأ
 
         window.checkPassword = function () {
             const input = document.getElementById('password').value;
@@ -460,7 +459,7 @@
         function loadAccounts() {
             const accountsRef = ref(db, 'accounts/' + currentUserId);
             onValue(accountsRef, (snapshot) => {
-                allAccounts = snapshot.val() || {};
+                allAccounts = snapshot.val() || {}; // الآن سيعمل بشكل صحيح
                 renderAccounts(allAccounts);
                 document.getElementById('sync-status').textContent = "✅ متزامن";
                 document.getElementById('sync-status').style.background = "#4CAF50";
@@ -475,23 +474,23 @@
                 Object.keys(accounts).forEach(key => {
                     const account = accounts[key];
                     list.innerHTML += `
-                        <div class="account-card">
-                            <div class="account-info">
-                                <h3>${account.site}</h3>
-                                <p>👤 ${account.user}</p>
-                                <p>📧 ${account.email || ''}</p>
-                                <p>🔑 <span id="pass-${key}">••••••••</span></p>
-                                 ${account.note ? `<p>📝 ${account.note}</p>` : ''}
-                                <p style="font-size:12px;color:#888;">📅 ${account.createdAt ? new Date(account.createdAt).toLocaleString('ar-EG') : ''}</p>
-                            </div>
-                            <div class="account-actions">
-                                <button class="action-btn copy-btn" onclick="copyToClipboard('${account.pass}')">نسخ</button>
-                                <button class="action-btn edit-btn" onclick="openEditModal('${key}')">تعديل</button>
-                                <button class="action-btn delete-btn" onclick="deleteAccount('${key}')">حذف</button>
-                                 <button class="action-btn" style="background:#607D8B;color:white" onclick="togglePassword('${key}','${account.pass}')">👁</button>
-                            </div>
+                    <div class="account-card">
+                        <div class="account-info">
+                            <h3>${account.site}</h3>
+                            <p>👤 ${account.user}</p>
+                            <p>📧 ${account.email || ''}</p>
+                            <p>🔑 <span id="pass-${key}">••••••••</span></p>
+                             ${account.note ? `<p>📝 ${account.note}</p>` : ''}
+                            <p style="font-size:12px;color:#888;">📅 ${account.createdAt ? new Date(account.createdAt).toLocaleString('ar-EG') : ''}</p>
                         </div>
-                    `;
+                        <div class="account-actions">
+                            <button class="action-btn copy-btn" onclick="copyToClipboard('${account.pass}')">نسخ</button>
+                            <button class="action-btn edit-btn" onclick="openEditModal('${key}')">تعديل</button>
+                            <button class="action-btn delete-btn" onclick="deleteAccount('${key}')">حذف</button>
+                             <button class="action-btn" style="background:#607D8B;color:white" onclick="togglePassword('${key}','${account.pass}')">👁</button>
+                        </div>
+                    </div>
+                `;
                 });
             }
         }
@@ -509,20 +508,17 @@
                     }
                 });
             }
-
             renderAccounts(filtered);
         }
 
         window.openEditModal = function (key) {
             const account = allAccounts[key];
-
             document.getElementById('edit-key').value = key;
             document.getElementById('edit-site').value = account.site;
             document.getElementById('edit-username').value = account.user;
             document.getElementById('edit-email').value = account.email || '';
             document.getElementById('edit-password').value = account.pass;
             document.getElementById('edit-note').value = account.note || '';
-
             document.getElementById('edit-modal').style.display = 'flex';
         }
 
@@ -576,9 +572,6 @@
             setTimeout(() => toast.style.display = 'none', 2000);
         }
 
-        if (localStorage.getItem('isLoggedIn') === 'true') {
-            showMainScreen();
-        }
         window.togglePassword = function (key, realPass) {
             const span = document.getElementById('pass-' + key);
             if (span.textContent === '••••••••') {
@@ -586,6 +579,10 @@
             } else {
                 span.textContent = '••••••••';
             }
+        }
+
+        if (localStorage.getItem('isLoggedIn') === 'true') {
+            showMainScreen();
         }
     </script>
 </body>
