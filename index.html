@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>حساباتي - Secure Vault</title>
+    <title>zkreasabra - Secure Vault</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -334,7 +334,7 @@
             <div class="header">
                 <div>
                     <span class="sync-status" id="sync-status">🔄 جاري المزامنة...</span>
-                    <h1>🗝️ حساباتي</h1>
+                    <h1>🗝️ حساباتي - زكريا صبرة</h1>
                 </div>
                 <button class="logout-btn" onclick="logout()">خروج</button>
             </div>
@@ -400,8 +400,9 @@
         const db = getDatabase(app);
 
         const MASTER_PASSWORD = "zkreasabra";
-        // معرف ثابت لجميع الأجهزة لعرض البيانات المشتركة
-        let currentUserId = "shared_user";
+        // الكود الجديد (استخدم اسمك أو أي كلمة سرية هنا)
+        const currentUserId = "my_private_vault_2024";
+        let allAccounts = {}; // هذا السطر هو الحل
 
         window.checkPassword = function () {
             const input = document.getElementById('password').value;
