@@ -179,13 +179,50 @@
             gap: 12px;
         }
 
+        .strength-container {
+            width: 100%;
+            height: 8px;
+            background: #eee;
+            border-radius: 10px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        #strength-bar {
+            height: 100%;
+            width: 0%;
+            transition: 0.3s;
+        }
+
+        .weak {
+            background: #f44336;
+        }
+
+        .medium {
+            background: #FF9800;
+        }
+
+        .strong {
+            background: #4CAF50;
+        }
+
+        .very-strong {
+            background: #2e7d32;
+        }
+
         .account-card {
-            background: white;
+            background: rgba(255, 255, 255, 0.95);
             padding: 18px;
-            border-radius: 16px;
+            border-radius: 18px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            transition: all 0.35s ease;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeSlide 0.5s ease forwards;
         }
 
         .account-info h3 {
@@ -219,6 +256,40 @@
         .copy-btn {
             background: #4CAF50;
             color: white;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #ffffff, #f5f7fa);
+            padding: 20px;
+            border-radius: 18px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            transition: all 0.4s ease;
+            cursor: default;
+        }
+
+
+        .account-card:hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.25);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-card p {
+            font-size: 13px;
+            color: #666;
+            margin-top: 5px;
         }
 
         .edit-btn {
@@ -317,6 +388,13 @@
                 justify-content: center;
             }
         }
+
+        @keyframes fadeSlide {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
     </style>
 </head>
 
@@ -338,6 +416,27 @@
                 </div>
                 <button class="logout-btn" onclick="logout()">خروج</button>
             </div>
+            <div class="stats-container">
+                <div class="stat-card">
+                    <h3 id="total-accounts">0</h3>
+                    <p>📦 إجمالي الحسابات</p>
+                </div>
+
+                <div class="stat-card">
+                    <h3 id="strong-count">0</h3>
+                    <p>🔐 كلمات قوية</p>
+                </div>
+
+                <div class="stat-card">
+                    <h3 id="weak-count">0</h3>
+                    <p>⚠️ كلمات ضعيفة</p>
+                </div>
+
+                <div class="stat-card">
+                    <h3 id="last-added">—</h3>
+                    <p>🕒 آخر إضافة</p>
+                </div>
+            </div>
 
             <!-- البحث -->
             <div class="search-box">
@@ -351,6 +450,16 @@
                 <input type="text" id="username" placeholder="اسم المستخدم">
                 <input type="email" id="email" placeholder="البريد الإلكتروني">
                 <input type="text" id="password-field" placeholder="كلمة المرور">
+                <div style="margin-top:10px;">
+                    <button type="button" onclick="openGenerator()"
+                        style="padding:10px 15px;background:#673AB7;color:white;border:none;border-radius:10px;cursor:pointer;">
+                        🎲 توليد كلمة مرور ذكية
+                    </button>
+                </div>
+                <div class="strength-container">
+                    <div id="strength-bar"></div>
+                </div>
+                <p id="strength-text" style="font-size:13px;margin-top:5px;"></p>
                 <textarea id="note" placeholder="ملاحظة (اختياري)"
                     style="width:100%;padding:14px;margin:8px 0;border:2px solid #e0e0e0;border-radius:12px;font-size:15px;"></textarea>
                 <button onclick="addAccount()">💾 حفظ</button>
@@ -461,6 +570,7 @@
             onValue(accountsRef, (snapshot) => {
                 allAccounts = snapshot.val() || {}; // الآن سيعمل بشكل صحيح
                 renderAccounts(allAccounts);
+                calculateStats(allAccounts);
                 document.getElementById('sync-status').textContent = "✅ متزامن";
                 document.getElementById('sync-status').style.background = "#4CAF50";
             });
@@ -584,7 +694,137 @@
         if (localStorage.getItem('isLoggedIn') === 'true') {
             showMainScreen();
         }
+        document.getElementById("password-field").addEventListener("input", function () {
+            checkPasswordStrength(this.value);
+        });
+
+        function checkPasswordStrength(password) {
+            const bar = document.getElementById("strength-bar");
+            const text = document.getElementById("strength-text");
+
+            let strength = 0;
+
+            if (password.length >= 8) strength++;
+            if (/[A-Z]/.test(password)) strength++;
+            if (/[a-z]/.test(password)) strength++;
+            if (/[0-9]/.test(password)) strength++;
+            if (/[^A-Za-z0-9]/.test(password)) strength++;
+
+            bar.className = "";
+
+            if (strength <= 2) {
+                bar.style.width = "25%";
+                bar.classList.add("weak");
+                text.textContent = "❌ كلمة المرور ضعيفة";
+            }
+            else if (strength === 3) {
+                bar.style.width = "50%";
+                bar.classList.add("medium");
+                text.textContent = "⚠️ كلمة المرور متوسطة";
+            }
+            else if (strength === 4) {
+                bar.style.width = "75%";
+                bar.classList.add("strong");
+                text.textContent = "✅ كلمة المرور قوية";
+            }
+            else {
+                bar.style.width = "100%";
+                bar.classList.add("very-strong");
+                text.textContent = "🔥 كلمة المرور قوية جدًا";
+            }
+        }
+        function calculateStats(accounts) {
+            const total = Object.keys(accounts).length;
+            let strong = 0;
+            let weak = 0;
+            let lastAdded = null;
+            let latestTime = 0;
+
+            Object.keys(accounts).forEach(key => {
+                const acc = accounts[key];
+                const pass = acc.pass || "";
+
+                let strength = 0;
+                if (pass.length >= 8) strength++;
+                if (/[A-Z]/.test(pass)) strength++;
+                if (/[a-z]/.test(pass)) strength++;
+                if (/[0-9]/.test(pass)) strength++;
+                if (/[^A-Za-z0-9]/.test(pass)) strength++;
+
+                if (strength >= 4) {
+                    strong++;
+                } else {
+                    weak++;
+                }
+
+                if (acc.createdAt && acc.createdAt > latestTime) {
+                    latestTime = acc.createdAt;
+                    lastAdded = acc.site;
+                }
+            });
+
+            document.getElementById("total-accounts").textContent = total;
+            document.getElementById("strong-count").textContent = strong;
+            document.getElementById("weak-count").textContent = weak;
+            document.getElementById("last-added").textContent = lastAdded || "—";
+        }
+        window.openGenerator = function () {
+            document.getElementById("generator-modal").style.display = "flex";
+        }
+
+        window.closeGenerator = function () {
+            document.getElementById("generator-modal").style.display = "none";
+        }
+
+        window.generatePassword = function () {
+            const length = document.getElementById("gen-length").value;
+            const upper = document.getElementById("gen-upper").checked;
+            const lower = document.getElementById("gen-lower").checked;
+            const number = document.getElementById("gen-number").checked;
+            const symbol = document.getElementById("gen-symbol").checked;
+
+            let chars = "";
+            if (upper) chars += "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            if (lower) chars += "abcdefghijklmnopqrstuvwxyz";
+            if (number) chars += "0123456789";
+            if (symbol) chars += "!@#$%^&*()_+";
+
+            if (chars === "") {
+                showToast("اختر نوع أحرف واحد على الأقل");
+                return;
+            }
+
+            let password = "";
+            for (let i = 0; i < length; i++) {
+                password += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+
+            document.getElementById("password-field").value = password;
+            checkPasswordStrength(password);
+            closeGenerator();
+            showToast("🔥 تم توليد كلمة مرور قوية!");
+        }
     </script>
+    <div class="modal" id="generator-modal">
+        <div class="modal-content">
+            <h3>🎲 مولد كلمات المرور</h3>
+
+            <label>الطول:</label>
+            <input type="number" id="gen-length" value="12" min="6" max="32">
+
+            <div style="margin-top:10px;">
+                <label><input type="checkbox" id="gen-upper" checked> أحرف كبيرة</label><br>
+                <label><input type="checkbox" id="gen-lower" checked> أحرف صغيرة</label><br>
+                <label><input type="checkbox" id="gen-number" checked> أرقام</label><br>
+                <label><input type="checkbox" id="gen-symbol" checked> رموز</label>
+            </div>
+
+            <div class="modal-buttons">
+                <button class="cancel-btn" onclick="closeGenerator()">إلغاء</button>
+                <button class="save-btn" onclick="generatePassword()">توليد</button>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>
