@@ -339,6 +339,41 @@
             font-size: 15px;
         }
 
+        #sidebar {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            /* مخفي بالافتراض */
+            width: 280px;
+            height: 100%;
+            background: #1a1a2e;
+            color: white;
+            padding: 20px;
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
+            transition: 0.3s;
+            z-index: 2000;
+        }
+
+        #sidebar .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #sidebar button {
+            background: #4CAF50;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: white;
+            font-weight: 600;
+        }
+
+        #sidebar.open {
+            left: 0;
+        }
+
         .modal-buttons {
             display: flex;
             gap: 10px;
@@ -399,18 +434,35 @@
 </head>
 
 <body>
+    <div id="sidebar">
+        <div class="sidebar-header">
+            <h3>🗝️ حسابك</h3>
+            <button onclick="closeSidebar()">✖</button>
+        </div>
+        <div class="sidebar-content">
+            <p><strong>البريد:</strong> <span id="user-email"></span></p>
+            <p><strong>UID:</strong> <span id="user-uid"></span></p>
+            <p><strong>توثيق البريد:</strong> <span id="email-verified"></span></p>
+            <p><strong>الحساب:</strong> <span id="user-display"></span> <span id="user-badge"></span></p>
+        </div>
+    </div>
+
     <div class="container">
         <div id="login-screen">
             <h2>🔐 مرحباً!</h2>
             <p style="color: #666; margin-bottom: 25px;">أدخل كلمة المرور للدخول</p>
+            <input type="email" id="email" placeholder="البريد الإلكتروني">
             <input type="password" id="password" placeholder="كلمة المرور">
-            <button onclick="checkPassword()">دخول</button>
+            <button id="loginBtn">دخول</button>
             <p id="error-msg" style="color: #f44336; margin-top: 15px; display: none;">كلمة المرور خاطئة!</p>
         </div>
 
         <div id="main-screen">
             <div class="header">
-                <div>
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <button onclick="openSidebar()"
+                        style="padding:8px 12px; border:none; border-radius:8px; cursor:pointer; background:#607D8B; color:white;">☰
+                        القائمة</button>
                     <span class="sync-status" id="sync-status">🔄 جاري المزامنة...</span>
                     <h1>🗝️ حساباتي - زكريا صبرة</h1>
                 </div>
@@ -485,6 +537,7 @@
                 <button class="save-btn" onclick="saveEdit()">حفظ</button>
             </div>
         </div>
+
     </div>
 
     <div class="toast" id="toast"></div>
@@ -507,21 +560,40 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
+        const auth = getAuth(app);
+        let currentUserId = null;
 
-        const MASTER_PASSWORD = "zkreasabra";
-        const currentUserId = "user_369y1sdrn";
+        //const MASTER_PASSWORD = "zkreasabra";
+        //const currentUserId = "user_369y1sdrn";
+        import {
+            getAuth,
+            signInWithEmailAndPassword,
+            onAuthStateChanged,
+            signOut
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         let allAccounts = {}; // التعريف المفقود الذي سبب الخطأ
 
         window.checkPassword = function () {
-            const input = document.getElementById('password').value;
-            if (input === MASTER_PASSWORD) {
-                localStorage.setItem('isLoggedIn', 'true');
-                showMainScreen();
-            } else {
-                document.getElementById('error-msg').style.display = 'block';
-            }
-        }
 
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+
+                    currentUserId = userCredential.user.uid;
+                    showMainScreen();
+
+                })
+                .catch((error) => {
+                    alert("خطأ في تسجيل الدخول");
+                    console.log(error);
+                });
+        };
+
+        // 🔥 هذا هو المكان الصحيح
+        document.getElementById("loginBtn")
+            .addEventListener("click", checkPassword);
         window.showMainScreen = function () {
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('main-screen').style.display = 'block';
@@ -529,8 +601,9 @@
         }
 
         window.logout = function () {
-            localStorage.removeItem('isLoggedIn');
-            location.reload();
+            signOut(auth).then(() => {
+                location.reload();
+            });
         }
 
         window.addAccount = function () {
@@ -566,8 +639,7 @@
         }
 
         function loadAccounts() {
-            const accountsRef = ref(db, 'accounts/' + currentUserId);
-            onValue(accountsRef, (snapshot) => {
+            const accountsRef = ref(db, 'accounts/' + currentUserId); onValue(accountsRef, (snapshot) => {
                 allAccounts = snapshot.val() || {}; // الآن سيعمل بشكل صحيح
                 renderAccounts(allAccounts);
                 calculateStats(allAccounts);
@@ -691,9 +763,7 @@
             }
         }
 
-        if (localStorage.getItem('isLoggedIn') === 'true') {
-            showMainScreen();
-        }
+
         document.getElementById("password-field").addEventListener("input", function () {
             checkPasswordStrength(this.value);
         });
@@ -804,6 +874,46 @@
             closeGenerator();
             showToast("🔥 تم توليد كلمة مرور قوية!");
         }
+        window.openSidebar = function () {
+
+            document.getElementById("sidebar").classList.add("open");
+
+            onAuthStateChanged(auth, (user) => {
+
+                if (!user) return;
+
+                document.getElementById("user-email").textContent = user.email;
+                document.getElementById("user-uid").textContent = user.uid;
+
+                const userRef = ref(db, 'users/' + user.uid);
+
+                onValue(userRef, (snapshot) => {
+
+                    console.log("DB Data:", snapshot.val());
+
+                    const data = snapshot.val();
+
+                    if (data && data.isVerified === true) {
+                        document.getElementById("email-verified").textContent = "✅ حساب موثق يدويًا";
+                        document.getElementById("user-badge").innerHTML =
+                            "<i class='fa-solid fa-circle-check' style='color:#2196F3'></i>";
+                    } else {
+                        document.getElementById("email-verified").textContent = "❌ غير موثق";
+                        document.getElementById("user-badge").innerHTML = "";
+                    }
+
+                });
+
+            });
+
+        }
+
+        window.closeSidebar = function () {
+            document.getElementById("sidebar").classList.remove("open");
+        }
+
+
+
     </script>
     <div class="modal" id="generator-modal">
         <div class="modal-content">
