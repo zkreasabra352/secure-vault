@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>zkreasabra - Secure Vault</title>
+    <title> حساباتي </title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -399,6 +399,12 @@
             color: #666;
         }
 
+        #notifications-container div {
+            border: 1px solid red;
+            padding: 8px;
+            margin-bottom: 5px;
+        }
+
         .toast {
             position: fixed;
             bottom: 30px;
@@ -430,6 +436,30 @@
                 transform: translateY(0);
             }
         }
+
+        #notifications-dropdown {
+            display: none;
+            position: absolute;
+            top: 50px;
+            left: 0;
+            width: 300px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            z-index: 1001;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        #notifications-dropdown div {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            transition: 0.2s;
+        }
+
+        #notifications-dropdown div:hover {
+            background: #f5f5f5;
+        }
     </style>
 </head>
 
@@ -444,6 +474,10 @@
             <p><strong>UID:</strong> <span id="user-uid"></span></p>
             <p><strong>توثيق البريد:</strong> <span id="email-verified"></span></p>
             <p><strong>الحساب:</strong> <span id="user-display"></span> <span id="user-badge"></span></p>
+            <button onclick="openChangePassword()"
+                style="margin-top:15px;width:100%;background:#FF9800;border:none;padding:10px;border-radius:8px;color:white;cursor:pointer;">
+                🔑 تغيير كلمة المرور
+            </button>
         </div>
     </div>
 
@@ -451,8 +485,8 @@
         <div id="login-screen">
             <h2>🔐 مرحباً!</h2>
             <p style="color: #666; margin-bottom: 25px;">أدخل كلمة المرور للدخول</p>
-            <input type="email" id="email" placeholder="البريد الإلكتروني">
-            <input type="password" id="password" placeholder="كلمة المرور">
+            <input type="email" id="account-email" placeholder="البريد الإلكتروني"> <input type="password" id="password"
+                placeholder="كلمة المرور">
             <button id="loginBtn">دخول</button>
             <p id="error-msg" style="color: #f44336; margin-top: 15px; display: none;">كلمة المرور خاطئة!</p>
         </div>
@@ -464,9 +498,21 @@
                         style="padding:8px 12px; border:none; border-radius:8px; cursor:pointer; background:#607D8B; color:white;">☰
                         القائمة</button>
                     <span class="sync-status" id="sync-status">🔄 جاري المزامنة...</span>
-                    <h1>🗝️ حساباتي - زكريا صبرة</h1>
+                    <h1>🗝️ حساباتي </h1>
+                </div>
+                <div style="position:relative;">
+                    <button onclick="toggleNotifications()"
+                        style="padding:8px 12px; border:none; border-radius:8px; cursor:pointer; background:#607D8B; color:white; position:relative;">
+                        🔔
+                        <span id="notif-badge"
+                            style="position:absolute; top:-5px; right:-5px; background:#f44336; color:white; padding:2px 6px; border-radius:50%; font-size:10px; display:none;">0</span>
+                    </button>
+                    <div id="notifications-dropdown"
+                        style="display:none; position:absolute; top:50px; left:0; width:300px; background:white; border-radius:12px; box-shadow:0 5px 20px rgba(0,0,0,0.2); z-index:1001; max-height:400px; overflow-y:auto;">
+                    </div>
                 </div>
                 <button class="logout-btn" onclick="logout()">خروج</button>
+
             </div>
             <div class="stats-container">
                 <div class="stat-card">
@@ -489,7 +535,56 @@
                     <p>🕒 آخر إضافة</p>
                 </div>
             </div>
+            <!-- زر لوحة التحكم للأدمن -->
+            <button id="admin-btn"
+                style="display:none; margin-bottom:15px; padding:12px 20px; background:#673AB7; color:white; border:none; border-radius:12px; cursor:pointer;"
+                onclick="openAdminPanel()">
+                🛠 لوحة تحكم المدير
+            </button>
 
+            <!-- قائمة الحسابات للأدمن -->
+            <div id="admin-accounts-list" style="display:none;">
+                <table id="admin-table"
+                    style="width:100%; border-collapse: collapse; margin-top:15px; background:white; border-radius:12px; overflow:hidden;">
+                    <thead style="background:#673AB7; color:white;">
+                        <tr>
+                            <th style="padding:10px;">البريد الإلكتروني</th>
+                            <th style="padding:10px;">عدد الحسابات</th>
+                            <th style="padding:10px;">الحسابات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-table-body"></tbody>
+                </table>
+
+            </div>
+            <div id="admin-notifications" style="margin-top:20px; display:none;">
+                <h3 style="color:white;">📝 إرسال تنبيه للمستخدمين</h3>
+                <textarea id="notif-message" placeholder="اكتب الرسالة هنا..."
+                    style="width:100%;padding:12px;border-radius:8px;margin-bottom:10px;"></textarea>
+                <button onclick="sendNotification()"
+                    style="padding:10px 15px; background:#FF5722; color:white; border:none; border-radius:8px; cursor:pointer;">
+                    📤 إرسال التنبيه
+                </button>
+                <div id="admin-add-user"
+                    style="margin-top:20px; display:block; background:white; padding:15px; border-radius:12px;">
+                    <h3>➕ إنشاء مستخدم جديد</h3>
+                    <input type="email" id="new-user-email" placeholder="البريد الإلكتروني"
+                        style="width:100%; margin-bottom:10px; padding:10px;">
+                    <input type="password" id="new-user-password" placeholder="كلمة المرور"
+                        style="width:100%; margin-bottom:10px; padding:10px;">
+                    <button onclick="createNewUser()"
+                        style="padding:10px 15px; background:#4CAF50; color:white; border:none; border-radius:8px; cursor:pointer;">
+                        🛠 إنشاء مستخدم
+                    </button>
+                </div>
+            </div>
+            <!-- قسم إدارة الإشعارات للأدمن -->
+            <div id="admin-notification-manager" style="margin-top:20px; display:none;">
+                <h3 style="color:white;">📋 إدارة الإشعارات المرسلة</h3>
+                <div id="admin-notifications-list"
+                    style="background:white; padding:15px; border-radius:12px; max-height:300px; overflow-y:auto;">
+                </div>
+            </div>
             <!-- البحث -->
             <div class="search-box">
                 <input type="text" id="search-input" placeholder="🔍 ابحث في حساباتك..." oninput="searchAccounts()">
@@ -500,8 +595,8 @@
                 <h3>➕ إضافة حساب جديد</h3>
                 <input type="text" id="site-name" placeholder="اسم الموقع">
                 <input type="text" id="username" placeholder="اسم المستخدم">
-                <input type="email" id="email" placeholder="البريد الإلكتروني">
-                <input type="text" id="password-field" placeholder="كلمة المرور">
+                <input type="email" id="new-account-email" placeholder="البريد الإلكتروني"> <input type="text"
+                    id="password-field" placeholder="كلمة المرور">
                 <div style="margin-top:10px;">
                     <button type="button" onclick="openGenerator()"
                         style="padding:10px 15px;background:#673AB7;color:white;border:none;border-radius:10px;cursor:pointer;">
@@ -545,8 +640,8 @@
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, onValue, push, remove, update }
-            from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, set, onValue, push, remove, update, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCnKUb63ZQVZv-xEV6EqyQcIGiShVhqyIE",
@@ -557,36 +652,196 @@
             messagingSenderId: "552762838636",
             appId: "1:552762838636:web:a33a5178267e1679a3d249"
         };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        const auth = getAuth(app);
         let currentUserId = null;
 
-        //const MASTER_PASSWORD = "zkreasabra";
-        //const currentUserId = "user_369y1sdrn";
         import {
             getAuth,
             signInWithEmailAndPassword,
             onAuthStateChanged,
-            signOut
-        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        let allAccounts = {}; // التعريف المفقود الذي سبب الخطأ
+            signOut,
+            updatePassword
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js"; // ✅ استيراد auth أولاً
 
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const auth = getAuth(app); // ✅ الآن صحيح
+        let allAccounts = {}; // التعريف المفقود الذي سبب الخطأ
+        window.sendNotification = async function () {
+            const message = document.getElementById("notif-message").value.trim();
+            if (!message) {
+                showToast("⚠️ الرجاء كتابة نص الإشعار");
+                return;
+            }
+
+            if (!currentUserId) {
+                showToast("⚠️ لا يوجد مستخدم مسجل حالياً");
+                return;
+            }
+
+            try {
+                // جلب جميع المستخدمين
+                const usersSnap = await get(ref(db, 'users'));
+                const allUsers = usersSnap.val() || {};
+                const userUids = Object.keys(allUsers);
+
+                if (userUids.length === 0) {
+                    showToast("⚠️ لا يوجد مستخدمين في المنصة");
+                    return;
+                }
+
+                let successCount = 0;
+                let errorCount = 0;
+
+                // إرسال التنبيه لكل مستخدم
+                for (const uid of userUids) {
+                    const notifRef = ref(db, `notifications/${uid}`);
+                    const newNotifRef = push(notifRef);
+
+                    try {
+                        await set(newNotifRef, {
+                            message: message,
+                            timestamp: Date.now(),
+                            fromAdmin: true
+                        });
+                        successCount++;
+                    } catch (err) {
+                        errorCount++;
+                        console.error(`Error sending to ${uid}:`, err);
+                    }
+                }
+
+                showToast(`✅ تم إرسال التنبيه لـ ${successCount} من أصل ${userUids.length} مستخدم!`);
+                document.getElementById("notif-message").value = '';
+
+            } catch (err) {
+                console.error(err);
+                showToast("❌ حدث خطأ أثناء إرسال التنبيه");
+            }
+        }
+        function loadNotifications() {
+            if (!currentUserId) return;
+
+            const notifRef = ref(db, `notifications/${currentUserId}`);
+
+            onValue(notifRef, snapshot => {
+                const data = snapshot.val();
+                const container = document.getElementById('notifications-dropdown');
+                const badge = document.getElementById('notif-badge');
+
+                if (!data || Object.keys(data).length === 0) {
+                    container.innerHTML = '<div style="padding:15px; text-align:center; color:#666;">📭 لا توجد إشعارات</div>';
+                    if (badge) badge.style.display = 'none';
+                    return;
+                }
+
+                const notifications = Object.values(data)
+                    .sort((a, b) => b.timestamp - a.timestamp);
+
+                container.innerHTML = '';
+                notifications.forEach((notif, index) => {
+                    const notifKey = Object.keys(data)[index];
+                    container.innerHTML += `
+                <div style="padding:12px; border-bottom:1px solid #eee; transition:0.2s; position:relative;" 
+                     onmouseover="this.style.background='#f5f5f5'" 
+                     onmouseout="this.style.background='white'">
+                    <div style="font-size:13px; color:#333;">📢 ${notif.message}</div>
+                    <div style="font-size:11px; color:#888; margin-top:5px;">
+                        ${new Date(notif.timestamp).toLocaleString('ar-EG')}
+                    </div>
+                </div>`;
+                });
+
+                // تحديث عداد الإشعارات
+                if (badge) {
+                    badge.textContent = notifications.length;
+                    badge.style.display = 'block';
+                }
+            }, (error) => {
+                console.error("Error loading notifications:", error);
+            });
+        }
+        window.createNewUser = async function () {
+            const email = document.getElementById("new-user-email").value.trim();
+            const password = document.getElementById("new-user-password").value;
+
+            if (!email || !password) {
+                showToast("⚠️ الرجاء إدخال البريد وكلمة المرور");
+                return;
+            }
+
+            if (password.length < 6) {
+                showToast("⚠️ كلمة المرور يجب أن تكون 6 أحرف على الأقل");
+                return;
+            }
+
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const uid = userCredential.user.uid;
+
+                await set(ref(db, 'users/' + uid), {
+                    email: email,
+                    isVerified: false,
+                    isAdmin: false,
+                    createdAt: Date.now()
+                });
+
+                showToast("✅ تم إنشاء المستخدم بنجاح!");
+                document.getElementById("new-user-email").value = '';
+                document.getElementById("new-user-password").value = '';
+
+            } catch (error) {
+                console.error(error);
+                showToast("❌ حدث خطأ أثناء إنشاء المستخدم: " + error.message);
+            }
+        };
         window.checkPassword = function () {
 
-            const email = document.getElementById("email").value;
+            const email = document.getElementById("account-email").value.trim();
             const password = document.getElementById("password").value;
+
+            if (!email || !password) {
+                alert("الرجاء إدخال البريد وكلمة المرور");
+                return;
+            }
 
             signInWithEmailAndPassword(auth, email, password)
                 .then((userCredential) => {
 
                     currentUserId = userCredential.user.uid;
                     showMainScreen();
+                    // تحقق من صلاحيات الأدمن
+                    function checkAdminStatus(uid) {
+                        const userRef = ref(db, 'users/' + uid);
+                        onValue(userRef, (snapshot) => {
+                            const data = snapshot.val();
+                            console.log("Admin Data:", data); // تحقق في الكونسول
+                            if (data && data.isAdmin) {
+                                document.getElementById("admin-btn").style.display = "block";
+                            } else {
+                                document.getElementById("admin-btn").style.display = "none";
+                            }
+                        });
+                    }
+
+                    // استدعاء التحقق بعد تسجيل الدخول
+                    checkAdminStatus(currentUserId);
 
                 })
                 .catch((error) => {
-                    alert("خطأ في تسجيل الدخول");
+
+                    if (error.code === "auth/invalid-email") {
+                        alert("صيغة البريد غير صحيحة");
+                    }
+                    else if (error.code === "auth/user-not-found") {
+                        alert("المستخدم غير موجود");
+                    }
+                    else if (error.code === "auth/wrong-password") {
+                        alert("كلمة المرور غير صحيحة");
+                    }
+                    else {
+                        alert("حدث خطأ في تسجيل الدخول");
+                    }
+
                     console.log(error);
                 });
         };
@@ -598,6 +853,7 @@
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('main-screen').style.display = 'block';
             loadAccounts();
+            loadNotifications(); // ← أضف هذا السطر لعرض الإشعارات
         }
 
         window.logout = function () {
@@ -607,11 +863,11 @@
         }
 
         window.addAccount = function () {
-            const site = document.getElementById('site-name').value;
-            const user = document.getElementById('username').value;
-            const email = document.getElementById('email').value;
-            const pass = document.getElementById('password-field').value;
-            const note = document.getElementById('note').value;
+            const site = document.getElementById('site-name').value.trim();
+            const user = document.getElementById('username').value.trim();
+            const email = document.getElementById('new-account-email').value.trim();
+            const pass = document.getElementById('password-field').value.trim();
+            const note = document.getElementById('note').value.trim();
 
             if (!site || !user || !email || !pass) {
                 showToast("الرجاء ملء جميع الحقول!");
@@ -620,19 +876,20 @@
 
             const accountsRef = ref(db, 'accounts/' + currentUserId);
             const newAccountRef = push(accountsRef);
+
             set(newAccountRef, {
-                site: site,
-                user: user,
-                email: email,
-                pass: pass,
-                note: note,
+                site,
+                user,
+                email,
+                pass,
+                note,
                 createdAt: Date.now()
             });
 
             document.getElementById('site-name').value = '';
             document.getElementById('username').value = '';
             document.getElementById('password-field').value = '';
-            document.getElementById('email').value = '';
+            document.getElementById('new-account-email').value = '';
             document.getElementById('note').value = '';
 
             showToast("✅ تم الحفظ!");
@@ -894,7 +1151,7 @@
                     const data = snapshot.val();
 
                     if (data && data.isVerified === true) {
-                        document.getElementById("email-verified").textContent = "✅ حساب موثق يدويًا";
+                        document.getElementById("email-verified").textContent = "✅ حساب موثق ";
                         document.getElementById("user-badge").innerHTML =
                             "<i class='fa-solid fa-circle-check' style='color:#2196F3'></i>";
                     } else {
@@ -907,10 +1164,269 @@
             });
 
         }
+        window.toggleNotifications = function () {
+            const dropdown = document.getElementById('notifications-dropdown');
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        }
 
+        // إغلاق القائمة عند النقر خارجها
+        document.addEventListener('click', function (e) {
+            const dropdown = document.getElementById('notifications-dropdown');
+            const button = document.querySelector('button[onclick="toggleNotifications()"]');
+            if (!dropdown.contains(e.target) && !button.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
         window.closeSidebar = function () {
             document.getElementById("sidebar").classList.remove("open");
         }
+
+        window.openChangePassword = function () {
+            document.getElementById("change-password-modal").style.display = "flex";
+        }
+
+        window.closeChangePassword = function () {
+            document.getElementById("change-password-modal").style.display = "none";
+        }
+
+        window.changePassword = function () {
+
+            const user = auth.currentUser;
+            const newPassword = document.getElementById("new-password").value;
+            const confirmPassword = document.getElementById("confirm-password").value;
+
+            if (!newPassword || newPassword.length < 6) {
+                showToast("كلمة المرور يجب أن تكون 6 أحرف على الأقل");
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                showToast("كلمتا المرور غير متطابقتين");
+                return;
+            }
+
+            updatePassword(user, newPassword)
+                .then(() => {
+                    showToast("✅ تم تغيير كلمة المرور بنجاح");
+                    closeChangePassword();
+                    document.getElementById("new-password").value = "";
+                    document.getElementById("confirm-password").value = "";
+                })
+                .catch((error) => {
+
+                    if (error.code === "auth/requires-recent-login") {
+                        showToast("⚠️ يجب تسجيل الدخول مرة أخرى لأسباب أمنية");
+                        logout();
+                    } else {
+                        showToast("حدث خطأ أثناء تغيير كلمة المرور");
+                        console.log(error);
+                    }
+
+                });
+        }
+
+        window.openAdminPanel = async function () {
+            try {
+                const currentUserRef = ref(db, 'users/' + currentUserId);
+                const snapshotUser = await get(currentUserRef);
+                const currentUserData = snapshotUser.val();
+
+                if (!currentUserData?.isAdmin) {
+                    alert("❌ ليس لديك صلاحية الوصول للأدمن");
+                    return;
+                }
+
+                // جلب جميع المستخدمين فقط
+                const usersSnap = await get(ref(db, 'users'));
+                const allUsers = usersSnap.val() || {};
+
+                // عرض الجدول للمستخدمين فقط
+                renderAdminUsers(allUsers);
+
+                // عرض الإشعارات المرسلة للأدمن
+                renderAdminNotifications();
+
+                // إظهار لوحة التحكم
+                document.getElementById('admin-accounts-list').style.display = 'block';
+                document.getElementById('admin-notifications').style.display = 'block';
+                document.getElementById('admin-notification-manager').style.display = 'block';
+
+                showToast(`✅ تم فتح لوحة التحكم - ${Object.keys(allUsers).length} مستخدم`);
+
+            } catch (err) {
+                console.log(err);
+                alert("❌ خطأ في لوحة التحكم: " + err.message);
+            }
+        }
+        // دالة عرض الحسابات للأدمن
+
+        window.renderAdminAccounts = function (allUsers, allAccounts) {
+            const tbody = document.getElementById('admin-table-body');
+            tbody.innerHTML = '';
+
+            for (const uid in allUsers) {
+                const userData = allUsers[uid];
+                const email = userData.email || 'غير متوفر';
+                const isVerified = !!userData.isVerified;
+
+                const userAccounts = allAccounts?.[uid] || {}; // إذا لا توجد حسابات، نعطي {} فارغة
+                const accountsCount = Object.keys(userAccounts).length;
+
+                let accountsHtml = '';
+
+                if (accountsCount > 0) {
+                    accountsHtml += '<table style="width:100%; border:1px solid #ccc; border-radius:8px; margin-top:5px; border-collapse:collapse;">';
+                    accountsHtml += '<thead><tr style="background:#f0f0f0;"><th>الموقع</th><th>اسم المستخدم</th><th>البريد</th><th>أزرار</th></tr></thead>';
+                    accountsHtml += '<tbody>';
+
+                    for (const accId of Object.keys(userAccounts)) {
+                        const acc = userAccounts[accId];
+                        accountsHtml += `
+                    <tr>
+                        <td style="padding:5px; border:1px solid #ccc;">${acc.site}</td>
+                        <td style="padding:5px; border:1px solid #ccc;">${acc.user}</td>
+                        <td style="padding:5px; border:1px solid #ccc;">${acc.email || ''}</td>
+                        <td style="padding:5px; border:1px solid #ccc; text-align:center;">
+                            <button style="padding:4px 8px; background:#2196F3; color:white; border:none; border-radius:6px; cursor:pointer;" onclick="toggleVerify('${uid}','${accId}',${acc.isVerified})">
+                                ${acc.isVerified ? 'إلغاء التوثيق' : 'توثيق'}
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                    }
+
+                    accountsHtml += '</tbody></table>';
+                } else {
+                    accountsHtml = '<span style="color:#888;">لا توجد حسابات</span>';
+                }
+
+                tbody.innerHTML += `
+            <tr>
+                <td style="padding:10px; border-bottom:1px solid #ccc;">${email}</td>
+                <td style="padding:10px; border-bottom:1px solid #ccc; text-align:center;">${accountsCount}</td>
+                <td style="padding:10px; border-bottom:1px solid #ccc;">${accountsHtml}</td>
+            </tr>
+        `;
+            }
+        }
+        window.renderAdminNotifications = async function () {
+            const container = document.getElementById('admin-notifications-list');
+            container.innerHTML = '<div style="padding:15px; text-align:center;">🔄 جاري تحميل الإشعارات...</div>';
+
+            try {
+                const usersSnap = await get(ref(db, 'users'));
+                const allUsers = usersSnap.val() || {};
+                let allNotifications = [];
+
+                // جلب جميع الإشعارات من جميع المستخدمين
+                for (const uid in allUsers) {
+                    const notifRef = ref(db, `notifications/${uid}`);
+                    const notifSnap = await get(notifRef);
+                    const notifData = notifSnap.val() || {};
+
+                    for (const notifKey in notifData) {
+                        const notif = notifData[notifKey];
+                        allNotifications.push({
+                            uid,
+                            key: notifKey,
+                            message: notif.message,
+                            timestamp: notif.timestamp,
+                            email: allUsers[uid].email
+                        });
+                    }
+                }
+
+                // ترتيب الإشعارات حسب التاريخ
+                allNotifications.sort((a, b) => b.timestamp - a.timestamp);
+
+                if (allNotifications.length === 0) {
+                    container.innerHTML = '<div style="padding:15px; text-align:center; color:#666;">📭 لا توجد إشعارات مرسلة</div>';
+                    return;
+                }
+
+                container.innerHTML = '';
+                allNotifications.forEach(notif => {
+                    container.innerHTML += `
+                <div style="padding:12px; border-bottom:1px solid #eee; margin-bottom:10px; background:#f9f9f9; border-radius:8px;">
+                    <div style="font-size:13px; color:#333;">📢 ${notif.message}</div>
+                    <div style="font-size:11px; color:#888; margin-top:5px;">
+                        📧 ${notif.email} | 🕒 ${new Date(notif.timestamp).toLocaleString('ar-EG')}
+                    </div>
+                    <button onclick="deleteNotification('${notif.uid}', '${notif.key}')"
+                        style="margin-top:8px; background:#f44336; color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:11px;">
+                        🗑️ حذف الإشعار
+                    </button>
+                </div>`;
+                });
+
+            } catch (error) {
+                console.error("Error rendering admin notifications:", error);
+                container.innerHTML = '<div style="padding:15px; text-align:center; color:#f44336;">❌ خطأ في تحميل الإشعارات</div>';
+            }
+        }
+        window.renderAdminUsers = function (allUsers) {
+            const tbody = document.getElementById('admin-table-body');
+            tbody.innerHTML = '';
+
+            if (!allUsers || Object.keys(allUsers).length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:20px;">لا يوجد مستخدمين</td></tr>';
+                return;
+            }
+
+            for (const uid in allUsers) {
+                const user = allUsers[uid];
+                const email = user.email || 'غير متوفر';
+                const isVerified = !!user.isVerified;
+
+                tbody.innerHTML += `
+            <tr>
+                <td style="padding:10px; border-bottom:1px solid #ccc;">${email}</td>
+                <td style="padding:10px; border-bottom:1px solid #ccc; text-align:center;">
+                    ${isVerified ? '✅ موثق' : '❌ غير موثق'}
+                </td>
+                <td style="padding:10px; border-bottom:1px solid #ccc; text-align:center;">
+                    <button style="padding:6px 12px; background:#2196F3; color:white; border:none; border-radius:6px; cursor:pointer;"
+                        onclick="toggleUserVerify('${uid}', ${isVerified})">
+                        ${isVerified ? 'إلغاء التوثيق' : 'توثيق'}
+                    </button>
+                </td>
+            </tr>
+        `;
+            }
+        };
+        window.deleteNotification = async function (uid, notifKey) {
+            if (!confirm("هل أنت متأكد من حذف هذا الإشعار؟")) {
+                return;
+            }
+
+            try {
+                const notifRef = ref(db, `notifications/${uid}/${notifKey}`);
+                await remove(notifRef);
+                showToast("✅ تم حذف الإشعار بنجاح");
+
+                // إعادة تحميل قائمة الإشعارات في لوحة الأدمن
+                renderAdminNotifications();
+            } catch (error) {
+                console.error("Error deleting notification:", error);
+                showToast("❌ حدث خطأ أثناء الحذف");
+            }
+        }
+        window.toggleUserVerify = function (uid, currentStatus) {
+            const userRef = ref(db, 'users/' + uid);
+            update(userRef, { isVerified: !currentStatus })
+                .then(() => {
+                    showToast(`✅ تم ${!currentStatus ? 'توثيق' : 'إلغاء توثيق'} المستخدم`);
+                    // إعادة تحميل الجدول بعد التحديث
+                    get(ref(db, 'users')).then(snapshot => {
+                        renderAdminUsers(snapshot.val() || {});
+                    });
+                })
+                .catch((error) => {
+                    console.error("Error toggling verification:", error);
+                    showToast('❌ حدث خطأ أثناء التوثيق');
+                });
+        }
+
 
 
 
@@ -932,6 +1448,17 @@
             <div class="modal-buttons">
                 <button class="cancel-btn" onclick="closeGenerator()">إلغاء</button>
                 <button class="save-btn" onclick="generatePassword()">توليد</button>
+            </div>
+        </div>
+    </div>
+    <div class="modal" id="change-password-modal">
+        <div class="modal-content">
+            <h3>🔑 تغيير كلمة المرور</h3>
+            <input type="password" id="new-password" placeholder="كلمة المرور الجديدة">
+            <input type="password" id="confirm-password" placeholder="تأكيد كلمة المرور">
+            <div class="modal-buttons">
+                <button class="cancel-btn" onclick="closeChangePassword()">إلغاء</button>
+                <button class="save-btn" onclick="changePassword()">حفظ</button>
             </div>
         </div>
     </div>
