@@ -1,0 +1,60 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "users": {
+      ".read": "root.child('users/'+auth.uid+'/isAdmin').val() === true",
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "root.child('users/'+auth.uid+'/isAdmin').val() === true",
+        "lastLoginAt": {
+          ".write": "auth != null && auth.uid === $uid && data.parent().exists()",
+          ".validate": "newData.isNumber()"
+        }
+      }
+    },
+
+    "accounts": {
+      ".read": "root.child('users/'+auth.uid+'/isAdmin').val() === true",
+      ".write": "root.child('users/'+auth.uid+'/isAdmin').val() === true",
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid && root.child('users/'+auth.uid).exists() && root.child('users/'+auth.uid+'/disabled').val() !== true && root.child('settings/maintenance/enabled').val() !== true",
+        ".write": "auth != null && auth.uid === $uid && root.child('users/'+auth.uid).exists() && root.child('users/'+auth.uid+'/disabled').val() !== true && root.child('settings/maintenance/enabled').val() !== true"
+      }
+    },
+
+    "active_sessions": {
+      ".read": "root.child('users/'+auth.uid+'/isAdmin').val() === true",
+      ".write": "root.child('users/'+auth.uid+'/isAdmin').val() === true",
+      "$uid": { ".write": "auth != null && auth.uid === $uid" }
+    },
+
+    "telemetry_errors": {
+      ".read": "root.child('users/'+auth.uid+'/isAdmin').val() === true",
+      ".write": "root.child('users/'+auth.uid+'/isAdmin').val() === true",
+      "$id": { ".write": "auth != null && !data.exists()" }
+    },
+
+    "notifications": {
+      ".read": "root.child('users/'+auth.uid+'/isAdmin').val() === true",
+      ".write": "root.child('users/'+auth.uid+'/isAdmin').val() === true",
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        "$nid": {
+          ".write": "auth != null && auth.uid === $uid && (!newData.exists() || newData.child('message').val() === data.child('message').val())"
+        }
+      }
+    },
+
+    "audit_log": {
+      ".read": "root.child('users/'+auth.uid+'/isAdmin').val() === true",
+      "$id": { ".write": "root.child('users/'+auth.uid+'/isAdmin').val() === true && !data.exists()" }
+    },
+
+    "settings": {
+      ".read": "auth != null",
+      ".write": "root.child('users/'+auth.uid+'/isAdmin').val() === true"
+    }
+  }
+}

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مركز التحكم | خزنتي</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<aside class="side" id="side">
+  <div class="brand"><div class="logo"><i class="fa-solid fa-shield-halved"></i></div><div>مركز التحكم<div class="muted small" style="font-weight:400">لوحة الإدارة</div></div></div>
+  <nav class="nav" id="nav">
+    <a data-view="overview" class="active"><i class="fa-solid fa-chart-pie"></i> نظرة عامة</a>
+    <a data-view="users"><i class="fa-solid fa-users"></i> المستخدمون <span class="count" id="c-users">0</span></a>
+    <a data-view="sessions"><i class="fa-solid fa-tower-broadcast"></i> الجلسات الحية <span class="count green" id="c-sessions">0</span></a>
+    <a data-view="errors"><i class="fa-solid fa-bug"></i> سجل الأخطاء <span class="count red hidden" id="c-errors">0</span></a>
+    <div class="sep">الإدارة</div>
+    <a data-view="create"><i class="fa-solid fa-user-plus"></i> إنشاء مستخدم</a>
+    <a data-view="notifs"><i class="fa-solid fa-bullhorn"></i> الإشعارات</a>
+    <a data-view="audit"><i class="fa-solid fa-clipboard-list"></i> سجل العمليات</a>
+    <a data-view="settings"><i class="fa-solid fa-sliders"></i> إعدادات النظام</a>
+  </nav>
+  <div class="side-foot">
+    <div class="row" style="margin-bottom:10px"><div class="avatar sm" id="me-av">A</div><div style="min-width:0"><div class="small mono" id="me-email" style="overflow:hidden;text-overflow:ellipsis"></div><span class="badge vio">مدير</span></div></div>
+    <div class="row"><button class="btn btn-ghost btn-sm grow" id="theme-btn"><i class="fa-solid fa-circle-half-stroke"></i> المظهر</button><button class="btn btn-danger btn-sm grow" id="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> خروج</button></div>
+  </div>
+</aside>
+<div class="side-backdrop" id="backdrop"></div>
+<main class="main">
+  <header class="page-head">
+    <button class="icon-btn burger" id="burger"><i class="fa-solid fa-bars"></i></button>
+    <h1 id="page-title">نظرة عامة</h1><span class="grow"></span>
+    <div class="input-wrap hide-m" style="width:280px"><input class="input" id="gsearch" placeholder="بحث سريع عن مستخدم (Ctrl+K)"><i class="fa-solid fa-magnifying-glass muted" style="position:absolute;inset-inline-end:14px;top:50%;transform:translateY(-50%)"></i></div>
+    <span class="live hide-m"><span class="dot on"></span> مباشر</span>
+    <button class="icon-btn" id="refresh" title="تحديث البيانات"><i class="fa-solid fa-rotate"></i></button>
+  </header>
+
+  <!-- نظرة عامة -->
+  <section class="view active" id="v-overview">
+    <div class="grid g-kpi" id="kpis"></div>
+    <div class="grid g-2" style="margin-top:16px">
+      <div class="card"><h3><i class="fa-solid fa-user-plus"></i> مستخدمون جدد (آخر 14 يوماً)</h3><div id="ch-new"></div></div>
+      <div class="card"><h3><i class="fa-solid fa-chart-pie"></i> توزيع المستخدمين</h3><div id="ch-mix"></div></div>
+    </div>
+    <div class="grid g-2" style="margin-top:16px">
+      <div class="card"><h3><i class="fa-solid fa-clock-rotate-left"></i> آخر العمليات الإدارية</h3><div class="feed" id="feed-audit"></div></div>
+      <div class="card"><h3><i class="fa-solid fa-triangle-exclamation"></i> أحدث الأخطاء</h3><div class="feed" id="feed-err"></div></div>
+    </div>
+  </section>
+
+  <!-- المستخدمون -->
+  <section class="view" id="v-users"><div class="card">
+    <div class="toolbar">
+      <input class="input search" id="u-q" placeholder="🔍 بحث بالبريد أو المعرّف أو اسم موقع...">
+      <select class="input" id="u-filter"><option value="all">الكل</option><option value="online">متصل الآن</option><option value="verified">موثق</option><option value="unverified">غير موثق</option><option value="disabled">معطّل</option><option value="admin">مديرون</option><option value="empty">بلا حسابات محفوظة</option></select>
+      <select class="input" id="u-sort"><option value="new">الأحدث تسجيلاً</option><option value="old">الأقدم</option><option value="email">البريد أ-ي</option><option value="accs">الأكثر حسابات</option><option value="login">آخر دخول</option></select>
+      <button class="btn btn-ghost" id="u-export"><i class="fa-solid fa-file-csv"></i> تصدير CSV</button>
+    </div>
+    <div class="bulk hidden" id="u-bulk"></div>
+    <div class="table-wrap"><table class="t"><thead><tr><th style="width:40px"><input type="checkbox" class="check" id="u-all"></th><th>المستخدم</th><th>الحالة</th><th>الحسابات</th><th class="hide-m">آخر دخول</th><th class="hide-m">التسجيل</th><th></th></tr></thead><tbody id="u-body"></tbody></table></div>
+    <div class="pager"><span class="muted small" id="u-info"></span><div class="row"><select class="input" id="u-per" style="width:auto"><option>10</option><option>25</option><option>50</option></select><button class="btn btn-ghost btn-sm" id="u-prev"><i class="fa-solid fa-chevron-right"></i></button><button class="btn btn-ghost btn-sm" id="u-next"><i class="fa-solid fa-chevron-left"></i></button></div></div>
+  </div></section>
+
+  <!-- الجلسات -->
+  <section class="view" id="v-sessions"><div class="card">
+    <h3><i class="fa-solid fa-tower-broadcast"></i> الجلسات الحية</h3>
+    <div class="toolbar"><select class="input" id="s-filter"><option value="online">المتصلون الآن</option><option value="all">كل الجلسات المسجلة</option></select><span class="muted small">تُحدَّث تلقائياً. «إنهاء الجلسة» يُخرج المستخدم من جميع أجهزته فوراً.</span></div>
+    <div class="table-wrap"><table class="t"><thead><tr><th>المستخدم</th><th>الجهاز</th><th>الصفحة</th><th>مدة الجلسة</th><th>آخر ظهور</th><th>الحالة</th><th></th></tr></thead><tbody id="s-body"></tbody></table></div>
+  </div></section>
+
+  <!-- الأخطاء -->
+  <section class="view" id="v-errors"><div class="card">
+    <h3><i class="fa-solid fa-bug"></i> سجل الأخطاء والتشخيص</h3>
+    <div class="toolbar">
+      <input class="input search" id="e-q" placeholder="🔍 بحث في الرسائل أو المستخدمين...">
+      <select class="input" id="e-sev"><option value="">كل المستويات</option><option>CRITICAL</option><option>HIGH</option><option>LOW</option></select>
+      <select class="input" id="e-st"><option value="">كل الحالات</option><option value="NEW">جديد</option><option value="INVESTIGATING">قيد الفحص</option><option value="RESOLVED">تم الحل</option></select>
+      <button class="btn btn-ghost" id="e-clear-res"><i class="fa-solid fa-broom"></i> حذف المحلولة</button>
+      <button class="btn btn-danger" id="e-clear-all"><i class="fa-solid fa-trash"></i> مسح الكل</button>
+    </div>
+    <div class="table-wrap"><table class="t"><thead><tr><th>الوقت</th><th>المستخدم</th><th>الخطأ</th><th>المستوى</th><th>الحالة</th><th></th></tr></thead><tbody id="e-body"></tbody></table></div>
+  </div></section>
+
+  <!-- إنشاء مستخدم -->
+  <section class="view" id="v-create"><div class="card" style="max-width:520px;margin:0 auto">
+    <h3><i class="fa-solid fa-user-plus"></i> إنشاء حساب مستخدم</h3>
+    <div class="field"><label>البريد الإلكتروني</label><input class="input" id="n-email" type="email" dir="ltr" autocomplete="off" placeholder="user@example.com"></div>
+    <div class="field"><label>كلمة المرور المؤقتة</label><div class="input-wrap two"><input class="input mono" id="n-pass" type="text" autocomplete="off"><button class="icon-btn" id="n-copy" title="نسخ"><i class="fa-regular fa-copy"></i></button><button class="icon-btn" id="n-gen" title="توليد"><i class="fa-solid fa-wand-magic-sparkles"></i></button></div><div class="strength"><i id="n-bar" style="width:0"></i></div></div>
+    <label class="row" style="margin-bottom:12px"><span class="switch"><input type="checkbox" id="n-ver" checked><i></i></span> حساب موثق</label>
+    <label class="row" style="margin-bottom:20px"><span class="switch"><input type="checkbox" id="n-admin"><i></i></span> صلاحيات مدير <span class="badge warn">حساس</span></label>
+    <button class="btn btn-primary btn-block" id="n-go"><i class="fa-solid fa-plus"></i> إنشاء الحساب</button>
+  </div></section>
+
+  <!-- الإشعارات -->
+  <section class="view" id="v-notifs"><div class="grid g-2">
+    <div class="card"><h3><i class="fa-solid fa-paper-plane"></i> إرسال إشعار</h3>
+      <div class="grid" style="grid-template-columns:1fr 1fr;gap:12px"><div class="field"><label>الفئة المستهدفة</label><select class="input" id="b-aud"><option value="all">جميع المستخدمين</option><option value="verified">الموثقون فقط</option><option value="online">المتصلون الآن</option><option value="admins">المديرون</option><option value="one">مستخدم محدد</option></select></div>
+      <div class="field"><label>النوع</label><select class="input" id="b-type"><option value="info">معلومة</option><option value="success">نجاح</option><option value="warning">تنبيه</option></select></div></div>
+      <div class="field hidden" id="b-one-w"><label>المستخدم</label><select class="input" id="b-one"></select></div>
+      <div class="field"><label>نص الرسالة</label><textarea class="input" id="b-msg" maxlength="400" placeholder="اكتب رسالتك..."></textarea></div>
+      <button class="btn btn-primary" id="b-send"><i class="fa-solid fa-bullhorn"></i> إرسال الآن</button></div>
+    <div class="card"><h3><i class="fa-solid fa-inbox"></i> سجل الإشعارات المرسلة</h3><div id="b-hist" style="max-height:480px;overflow:auto"></div></div>
+  </div></section>
+
+  <!-- سجل العمليات -->
+  <section class="view" id="v-audit"><div class="card">
+    <h3><i class="fa-solid fa-clipboard-list"></i> سجل العمليات الإدارية <span class="muted small" style="font-weight:400">(للقراءة فقط، لا يمكن حذفه)</span></h3>
+    <div class="toolbar"><input class="input search" id="a-q" placeholder="🔍 بحث في العمليات..."><button class="btn btn-ghost" id="a-export"><i class="fa-solid fa-file-csv"></i> تصدير CSV</button></div>
+    <div class="table-wrap"><table class="t"><thead><tr><th>الوقت</th><th>المدير</th><th>العملية</th><th>الهدف</th><th>تفاصيل</th></tr></thead><tbody id="a-body"></tbody></table></div>
+  </div></section>
+
+  <!-- الإعدادات -->
+  <section class="view" id="v-settings"><div class="grid g-2">
+    <div class="card"><h3><i class="fa-solid fa-screwdriver-wrench"></i> وضع الصيانة</h3>
+      <p class="muted small" style="margin-bottom:14px">عند التفعيل يُحجب المستخدمون العاديون عن التطبيق وعن بياناتهم (يُطبَّق في قواعد القاعدة أيضاً). المديرون غير متأثرين.</p>
+      <label class="row" style="margin-bottom:14px"><span class="switch"><input type="checkbox" id="m-on"><i></i></span> <b id="m-state">متوقف</b></label>
+      <div class="field"><label>رسالة تظهر للمستخدمين</label><input class="input" id="m-msg" placeholder="نقوم بتحديثات، سنعود قريباً"></div>
+      <button class="btn btn-primary" id="m-save">حفظ الإعدادات</button></div>
+    <div class="card"><h3><i class="fa-solid fa-circle-info"></i> معلومات</h3><div class="detail-grid" id="sys-info"></div>
+      <button class="btn btn-ghost btn-block" id="reload-accs"><i class="fa-solid fa-database"></i> إعادة احتساب عدد الحسابات المحفوظة</button></div>
+  </div></section>
+</main>
+<script type="module" src="admin.js"></script>
+</body>
+</html>

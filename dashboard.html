@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>خزنتي | حساباتي</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><div class="logo"><i class="fa-solid fa-vault"></i></div><span class="hide-m">خزنتي</span></div>
+  <div class="input-wrap grow" style="max-width:520px;margin-inline:auto"><input class="input" id="search" placeholder="ابحث في حساباتك...   ( / )" autocomplete="off"><i class="fa-solid fa-magnifying-glass muted" style="position:absolute;inset-inline-end:16px;top:50%;transform:translateY(-50%)"></i></div>
+  <button class="btn btn-primary btn-sm" id="add-btn"><i class="fa-solid fa-plus"></i><span class="hide-m">حساب جديد</span></button>
+  <div class="bell" style="position:relative"><button class="icon-btn" id="bell-btn" title="الإشعارات"><i class="fa-regular fa-bell"></i></button><span class="n hidden" id="bell-n">0</span></div>
+  <div style="position:relative"><button class="avatar sm" id="me-btn" style="border:0;cursor:pointer">؟</button>
+    <div class="dropdown hidden" id="me-menu">
+      <div style="padding:10px 12px"><div id="me-email" class="small mono" style="word-break:break-all"></div><div id="me-badge" style="margin-top:6px"></div></div><hr style="border:0;border-top:1px solid var(--border);margin:4px 0">
+      <button id="m-gen"><i class="fa-solid fa-wand-magic-sparkles"></i> مولّد كلمات المرور</button>
+      <button id="m-pass"><i class="fa-solid fa-key"></i> تغيير كلمة المرور</button>
+      <button id="m-theme"><i class="fa-solid fa-circle-half-stroke"></i> تغيير المظهر</button>
+      <button id="m-out" style="color:#ff7b7b"><i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج</button>
+    </div></div>
+</header>
+<main class="container">
+  <section class="grid g-kpi" style="margin-bottom:20px">
+    <div class="card row" style="gap:16px"><div class="ring" id="ring"><b id="score">—</b></div><div><div style="font-weight:800">درجة الأمان</div><div class="muted small" id="score-note">أضف حساباتك لنحلّلها</div></div></div>
+    <div class="card kpi" style="--c:#38bdf8"><div class="ic"><i class="fa-solid fa-key"></i></div><div class="v" id="k-total">0</div><div class="l">إجمالي الحسابات</div></div>
+    <div class="card kpi" style="--c:#22c55e"><div class="ic"><i class="fa-solid fa-shield-halved"></i></div><div class="v" id="k-strong">0</div><div class="l">كلمات مرور قوية</div></div>
+    <div class="card kpi" style="--c:#ef4444"><div class="ic"><i class="fa-solid fa-triangle-exclamation"></i></div><div class="v" id="k-weak">0</div><div class="l">ضعيفة تحتاج تحسيناً</div></div>
+    <div class="card kpi" style="--c:#f59e0b"><div class="ic"><i class="fa-solid fa-clone"></i></div><div class="v" id="k-dup">0</div><div class="l">كلمات مرور مكررة</div></div>
+  </section>
+  <div class="row between wrap" style="margin-bottom:16px;gap:12px">
+    <div class="chips grow" id="cats"></div>
+    <select class="input" id="sort" style="width:auto"><option value="new">الأحدث</option><option value="old">الأقدم</option><option value="az">أ → ي</option><option value="weak">الأضعف أولاً</option></select>
+  </div>
+  <div id="list" class="acc-grid"></div>
+</main>
+<script type="module" src="app.js"></script>
+</body>
+</html>

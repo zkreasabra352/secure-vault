@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تسجيل الدخول | خزنتي</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="auth-page">
+  <section class="auth-brand">
+    <span class="orb o1"></span><span class="orb o2"></span>
+    <div class="logo"><i class="fa-solid fa-vault"></i></div>
+    <h1>خزنتك الرقمية <span>بحماية حقيقية</span></h1>
+    <div class="feat"><i class="fa-solid fa-lock"></i><div>تشفير AES لكل كلمة مرور قبل حفظها</div></div>
+    <div class="feat"><i class="fa-solid fa-wand-magic-sparkles"></i><div>مولّد كلمات مرور قوية وفحص للتكرار والضعف</div></div>
+    <div class="feat"><i class="fa-solid fa-gauge-high"></i><div>مزامنة فورية وإدارة كاملة من لوحة التحكم</div></div>
+  </section>
+  <section class="auth-form">
+    <div class="auth-box">
+      <div class="row between" style="margin-bottom:26px">
+        <div class="row"><div class="logo" style="width:42px;height:42px;font-size:19px;border-radius:13px"><i class="fa-solid fa-vault"></i></div><b style="font-size:20px">خزنتي</b></div>
+        <button class="icon-btn" id="theme-btn" title="تغيير المظهر"><i class="fa-solid fa-circle-half-stroke"></i></button>
+      </div>
+      <h2 style="font-size:26px">مرحباً بعودتك 👋</h2>
+      <p class="muted" style="margin:6px 0 22px">سجّل الدخول للوصول إلى حساباتك المحفوظة</p>
+      <div id="banner"></div>
+      <div class="field"><label for="email">البريد الإلكتروني</label><input class="input" id="email" type="email" autocomplete="username" placeholder="name@example.com" dir="ltr"></div>
+      <div class="field"><label for="password">كلمة المرور</label>
+        <div class="input-wrap"><input class="input" id="password" type="password" autocomplete="current-password" placeholder="••••••••" dir="ltr"><button type="button" class="icon-btn" id="eye" title="إظهار"><i class="fa-regular fa-eye"></i></button></div>
+      </div>
+      <div class="row between" style="margin:-4px 0 18px"><span></span><a href="#" id="forgot" class="small">نسيت كلمة المرور؟</a></div>
+      <button class="btn btn-primary btn-block" id="login-btn" style="padding:13px"><span>تسجيل الدخول</span></button>
+    </div>
+  </section>
+</div>
+<script type="module" src="auth.js"></script>
+</body>
+</html>
